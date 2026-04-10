@@ -12,6 +12,8 @@ if(0 > address || 256*256-1 < address)
 *pageOffset = address % PAGE_SIZE; //the offset
 
 
+//*pageNumber = (address >> 8) & (NUM_PAGES - 1);// this is the page page number
+//*pageOffset = address & (PAGE_SIZE - 1); // this is the page offset
 return 0;
 // the function should take a four-byte integer in the range 0 to 256*256-1
 // and compute the page number and page offset as described above;
@@ -30,41 +32,18 @@ return 0;
 
 };
 
-//TODO: don't forget to delete this before submitting
+
 int main(int argc, char *argv[]){
-//testing functions
+
 int pageNumber;
 int pageOffset;
 int address = 16916;
 
-printf("address = %d\n", address);
 printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
 printf("pageNumber = %d\n", pageNumber);
 printf("pageOffset = %d\n", pageOffset);
-printf("\n");
 
-address = 62493;
-
-printf("address = %d\n", address);
-printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
-printf("pageNumber = %d\n", pageNumber);
-printf("pageOffset = %d\n", pageOffset);
-printf("\n");
-
-address = 99999999;
-
-printf("address = %d\n", address);
-printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
-printf("pageNumber = %d\n", pageNumber);
-printf("pageOffset = %d\n", pageOffset);
-printf("\n");
-
-address = -5;
-
-printf("address = %d\n", address);
-printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
-printf("pageNumber = %d\n", pageNumber);
-printf("pageOffset = %d\n", pageOffset);
+address = 
 
 };
 
