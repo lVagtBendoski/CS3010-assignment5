@@ -1,70 +1,39 @@
 #include <stdio.h>
+#include <stdlib.h>
 #define PAGE_SIZE 256
 #define NUM_PAGES 256
-
+// HEY JASON. We are working together on this assignment. 
+//Luke Vagt-Bendoski and Oliver Baker
+//:)
 
 int decodeAddress(int address, int *pageNumber, int *pageOffset){
 
-if(0 > address || 256*256-1 < address)
-	return 1;
+	if(0 > address || 256*256-1 < address)
+		return 1;
 
-*pageNumber = address / NUM_PAGES; //the page number
-*pageOffset = address % PAGE_SIZE; //the offset
+	*pageNumber = address / NUM_PAGES; //the page number
+	*pageOffset = address % PAGE_SIZE; //the offset
 
-
-return 0;
-// the function should take a four-byte integer in the range 0 to 256*256-1
-// and compute the page number and page offset as described above;
-// it should return 0 if the address argument is valid (in the range 0 to 256*256-1)
-// and 1 otherwise
+	return 0;
 
 };
 
 
 int readFromBackingStore(FILE *fp, char *buffer, int pageNumber){
 
-// read bytes n to n+PAGE_SIZE-1, where n = PAGE_SIZE * pageNumber;
-// put the data into the location pointed to by buffer
-// return 0 if there was no error during the read; otherwise return 1
-return 0;
+	if(fp == NULL)
+		return 1; // bad file pointer
+	
+	int n = PAGE_SIZE * pageNumber;
+
+	if(fseek(fp, 0, n) != 0)
+		return 1; // error during seek
+
+
+	if(fread(buffer, sizeof(char), PAGE_SIZE, fp) != PAGE_SIZE) {
+		return 1; // error during read
+	}
+	
+	return 0; // no errors :)
 
 };
-
-//TODO: don't forget to delete this before submitting
-int main(int argc, char *argv[]){
-//testing functions
-int pageNumber;
-int pageOffset;
-int address = 16916;
-
-printf("address = %d\n", address);
-printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
-printf("pageNumber = %d\n", pageNumber);
-printf("pageOffset = %d\n", pageOffset);
-printf("\n");
-
-address = 62493;
-
-printf("address = %d\n", address);
-printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
-printf("pageNumber = %d\n", pageNumber);
-printf("pageOffset = %d\n", pageOffset);
-printf("\n");
-
-address = 99999999;
-
-printf("address = %d\n", address);
-printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
-printf("pageNumber = %d\n", pageNumber);
-printf("pageOffset = %d\n", pageOffset);
-printf("\n");
-
-address = -5;
-
-printf("address = %d\n", address);
-printf("return value = %d\n", decodeAddress(address, &pageNumber, &pageOffset));
-printf("pageNumber = %d\n", pageNumber);
-printf("pageOffset = %d\n", pageOffset);
-
-};
-
