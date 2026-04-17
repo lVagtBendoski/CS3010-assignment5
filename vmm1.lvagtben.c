@@ -1,39 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define PAGE_SIZE 256
-#define NUM_PAGES 256
+#include "vmm.lvagtben.h"
 // HEY JASON. We are working together on this assignment. 
 //Luke Vagt-Bendoski and Oliver Baker
 //:)
 
-int decodeAddress(int address, int *pageNumber, int *pageOffset){
+//code written by jason from the class gitlab repo
+int decodeAddress(int addr, int *pageNumber, int *pageOffset){
+  if (addr >= PAGE_SIZE * NUM_PAGES)
+    return 8;
+  if (addr < 0)
+    return 8;
 
-	if(0 > address || 256*256-1 < address)
-		return 1;
+  *pageNumber = addr / PAGE_SIZE; // bits 8-15
+  *pageOffset = addr % PAGE_SIZE; // bits 0-7
+  return 0;
 
-	*pageNumber = address / NUM_PAGES; //the page number
-	*pageOffset = address % PAGE_SIZE; //the offset
+};
+
+//code written by jason from the class gitlab repo
+int readFromBackingStore(FILE *fp, unsigned char *buffer, int pageNumber) {
+  int rtnval;
+  long fileOffset;
+
+  // page n is located in bytes n * PAGE_SIZE to n * PAGE_SIZE + 255
+  fileOffset = PAGE_SIZE * pageNumber;
+  rtnval = fseek(fp, fileOffset, SEEK_SET);
+  if (rtnval != 0)
+    return rtnval;
+
+  // read PAGE_SIZE elements, and each element is 1 byte in size
+  rtnval = fread(buffer, 1, PAGE_SIZE, fp);
+  if (rtnval != PAGE_SIZE)
+    return 8;
+  else
+    return 0;
+}
+
+
+int main(int argc, char *argv[]){
 
 	return 0;
-
-};
-
-
-int readFromBackingStore(FILE *fp, char *buffer, int pageNumber){
-
-	if(fp == NULL)
-		return 1; // bad file pointer
-	
-	int n = PAGE_SIZE * pageNumber;
-
-	if(fseek(fp, 0, n) != 0)
-		return 1; // error during seek
-
-
-	if(fread(buffer, sizeof(char), PAGE_SIZE, fp) != PAGE_SIZE) {
-		return 1; // error during read
-	}
-	
-	return 0; // no errors :)
-
-};
+}
