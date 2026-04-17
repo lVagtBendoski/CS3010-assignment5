@@ -42,10 +42,14 @@ int readFromBackingStore(FILE *fp, unsigned char *buffer, int pageNumber) {
 int getFrameNumber(PageTableInfo *pageTableInfo, int logicalPageNumber,
 int accessTime, int *pageFault){
 	int i, haveFreeFrame = 0, freeFrameIndex = 0, frameNumber,
-	minAccessTime = pageTableInfo->accessTime[0], minAccessTimeFrameNumber = -1;
+	minAccessTime = pageTableInfo->accessTime[0], minAccessTimeFrameNumber = 0;
 	//check if the page is in the page table
 	frameNumber = pageTableInfo->pageTable[logicalPageNumber];
 	if(frameNumber != -1){
+		if(frameNumber < 0 || frameNumber > 63){
+			printf("Frame number out of bounds!!!!!!!!\n");
+			printf("Frame number: %d\n", frameNumber);
+		}
 		pageTableInfo->accessTime[frameNumber] = accessTime;
 		pageTableInfo->freeFrame[frameNumber] = 0;
 		*pageFault = 0;
@@ -57,30 +61,25 @@ int accessTime, int *pageFault){
 	for(int i=0; i<NUM_FRAMES; i++){
 		if(pageTableInfo->freeFrame[i] == 1){
 			//if we find a free frame, use it
+			if(freeFrameIndex < 0 || freeFrameIndex > 63){
+				printf("Frame number out of bounds!!!!!!!!\n");
+				printf("Free frame index: %d\n", freeFrameIndex);
+			}
 			freeFrameIndex = i;
 			pageTableInfo->pageTable[logicalPageNumber] = freeFrameIndex;
 			pageTableInfo->accessTime[freeFrameIndex] = accessTime;
 			pageTableInfo->freeFrame[freeFrameIndex] = 0;
 			return freeFrameIndex;
 		}
+		// find min access time and frame in case we have no free frames
 		if(pageTableInfo->accessTime[i] < minAccessTime){
 			minAccessTime = pageTableInfo->accessTime[i];
 			minAccessTimeFrameNumber = i;
 		}
 	}
 
-/*
-=> reference to page 113
-=> EVICT! oldest frame is 0 (access time = 0)
-=> the page mapped to frame 0 is 66: page 66 is now unmapped (not in memory)
-*/
-
-
-
 	//If we don't have a free frame, replace the one used longest ago.
-	// Set the new page to the frame we are replacing
 	printf("=> reference to page %d\n", logicalPageNumber);
-	pageTableInfo->pageTable[logicalPageNumber] = minAccessTimeFrameNumber;
 	//update the access time for the frame we are replacing
 	pageTableInfo->accessTime[minAccessTimeFrameNumber] = accessTime;
 	printf("=> EVICT! oldest frame is %d (access time = %d)\n", minAccessTimeFrameNumber, minAccessTime);
@@ -88,21 +87,25 @@ int accessTime, int *pageFault){
 	//to do this we find the page that is currently using the frame we are replacing and set it to -1
 	for(int i=0; i<NUM_PAGES; i++){
 		if(pageTableInfo->pageTable[i] == minAccessTimeFrameNumber){
+			if(minAccessTimeFrameNumber < 0 || minAccessTimeFrameNumber > 63){
+				printf("Frame number out of bounds!!!!!!!!\n");
+				printf("Min access time frame number: %d\n", minAccessTimeFrameNumber);
+			}
 			pageTableInfo->pageTable[i] = -1;
 			printf("=> the page mapped to frame %d is %d: page %d is now unmapped (not in memory)\n",
 				 minAccessTimeFrameNumber, i, i);
+			// Set the new page to the frame we are replacing
+			pageTableInfo->pageTable[logicalPageNumber] = minAccessTimeFrameNumber;
 			return minAccessTimeFrameNumber;
 		}
 	}
-	
-
 }
 
 
 
 int main(int argc, char *argv[]){
 	int accessTime = 0, virtualAddress, len, pageNumber, pageOffset,
-	pageFault, frameNumber, byteIndex;
+	pageFault, frameNumber, byteIndex, numPageFaults = 0;
   	char byteToFind, *chp;
   	char bufferAddress[BUFLEN], bufferBacking[BUFLEN], physicalMemory[NUM_FRAMES * PAGE_SIZE];
 	FILE *addresses, *backingStore;
@@ -142,6 +145,7 @@ int main(int argc, char *argv[]){
 		frameNumber = getFrameNumber(&pageTableInfo, pageNumber, accessTime, &pageFault);
 		// If page fault, read from backing store and save those bytes in memory
 		if(pageFault){
+			numPageFaults++;
 			printf("Page fault for page number %d\n", pageNumber);
 			readFromBackingStore(backingStore, bufferBacking, pageNumber);
 			
@@ -167,13 +171,15 @@ int main(int argc, char *argv[]){
 		}
 		// Increment Access time
 		printf("accessTime: %d\n", accessTime);
+		accessTime++;
 		// Read next address
 		chp = fgets(bufferAddress, BUFLEN, addresses);
+
 	}
 	fclose(addresses);
 	fclose(backingStore);
 
-
+	printf("Number of total page faults: %d\n", numPageFaults);
 
 	return 0;
 }
